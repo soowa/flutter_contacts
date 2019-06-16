@@ -336,89 +336,55 @@ public class ContactsServicePlugin implements MethodCallHandler {
 
   private boolean updateContact(Contact contact, Contact oldContact) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-    ContentProviderOperation.Builder op;
 
-    // Drop all details about contact except name
-    op = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID + "=? AND " + ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE});
-    ops.add(op.build());
-
-    op = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID + "=? AND " + ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE});
-    ops.add(op.build());
-
-    op = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID +"=? AND " + ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE});
-    ops.add(op.build());
-
-    op = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID +"=? AND " + ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE});
-    ops.add(op.build());
-
-    op = ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID + "=? AND " + ContactsContract.Data.MIMETYPE + "=?",
-                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE});
-    ops.add(op.build());
-
-    // Update data (name)
-    op = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-            .withSelection(ContactsContract.Data.CONTACT_ID + "=? AND " + ContactsContract.Data.MIMETYPE + "=?",
+    ContentProviderOperation.Builder operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+            .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?",
                     new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE})
             .withValue(StructuredName.GIVEN_NAME, contact.givenName)
             .withValue(StructuredName.MIDDLE_NAME, contact.middleName)
             .withValue(StructuredName.FAMILY_NAME, contact.familyName)
             .withValue(StructuredName.PREFIX, contact.prefix)
             .withValue(StructuredName.SUFFIX, contact.suffix);
-    ops.add(op.build());
+    ops.add(operation.build());
 
-    // Insert data back into contact
-    op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-            .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-            .withValue(ContactsContract.Data.RAW_CONTACT_ID, contact.identifier)
-            .withValue(Organization.TYPE, Organization.TYPE_WORK)
+    operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+            .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?",
+                    new String[]{String.valueOf(contact.identifier), ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE})
             .withValue(Organization.COMPANY, contact.company)
             .withValue(Organization.TITLE, contact.jobTitle);
-    ops.add(op.build());
+    ops.add(operation.build());
 
-    op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-            .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE)
-            .withValue(ContactsContract.Data.RAW_CONTACT_ID, contact.identifier)
-            .withValue(CommonDataKinds.Note.NOTE, contact.note);
-    ops.add(op.build());
-
-    for (Item phone : contact.phones) {
-      op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-              .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-              .withValue(ContactsContract.Data.RAW_CONTACT_ID, contact.identifier)
-              .withValue(Phone.NUMBER, phone.value)
-              .withValue(Phone.TYPE, Item.stringToPhoneType(phone.label));
-      ops.add(op.build());
+    //Phones
+    for(Item phone : contact.phones){
+      operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+              .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + Phone.TYPE + "=?",
+                      new String[]{String.valueOf(contact.identifier), Phone.CONTENT_ITEM_TYPE, String.valueOf(Item.stringToPhoneType(phone.label))})
+              .withValue(CommonDataKinds.Phone.TYPE, Item.stringToPhoneType(phone.label)
+              .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phone.value);
+      ops.add(operation.build());
     }
 
+    //Emails
     for (Item email : contact.emails) {
-      op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-              .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-              .withValue(ContactsContract.Data.RAW_CONTACT_ID, contact.identifier)
-              .withValue(CommonDataKinds.Email.ADDRESS, email.value)
-              .withValue(CommonDataKinds.Email.TYPE, Item.stringToEmailType(email.label));
-      ops.add(op.build());
+      operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+              .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + Email.TYPE + "=?",
+                      new String[]{String.valueOf(contact.identifier), Email.CONTENT_ITEM_TYPE, String.valueOf(Item.stringToEmailType(email.label))})
+              .withValue(CommonDataKinds.Email.ADDRESS, email.value);
+      ops.add(operation.build());
     }
 
+    //Postal addresses
     for (PostalAddress address : contact.postalAddresses) {
-      op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-              .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
-              .withValue(ContactsContract.Data.RAW_CONTACT_ID, contact.identifier)
-              .withValue(CommonDataKinds.StructuredPostal.TYPE, PostalAddress.stringToPostalAddressType(address.label))
-              .withValue(CommonDataKinds.StructuredPostal.STREET, address.street)
-              .withValue(CommonDataKinds.StructuredPostal.CITY, address.city)
-              .withValue(CommonDataKinds.StructuredPostal.REGION, address.region)
-              .withValue(CommonDataKinds.StructuredPostal.POSTCODE, address.postcode)
-              .withValue(CommonDataKinds.StructuredPostal.COUNTRY, address.country);
-      ops.add(op.build());
+      operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+              .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + StructuredPostal.TYPE + "=?",
+                      new String[]{String.valueOf(contact.identifier), StructuredPostal.CONTENT_ITEM_TYPE, String.valueOf(PostalAddress.stringToPostalAddressType(address.label))})
+              .withValue(StructuredPostal.LABEL, address.label)
+              .withValue(StructuredPostal.STREET, address.street)
+              .withValue(StructuredPostal.CITY, address.city)
+              .withValue(StructuredPostal.REGION, address.region)
+              .withValue(StructuredPostal.POSTCODE, address.postcode)
+              .withValue(StructuredPostal.COUNTRY, address.country);
+      ops.add(operation.build());
     }
 
     try {
