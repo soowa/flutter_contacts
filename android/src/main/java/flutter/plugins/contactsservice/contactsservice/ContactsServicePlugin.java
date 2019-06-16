@@ -67,8 +67,8 @@ public class ContactsServicePlugin implements MethodCallHandler {
         }
         break;
       case "updateContact":
-        Contact ct1 = Contact.fromMap((HashMap)call.argument("update");
-        Contact ct2 = Contact.fromMap((HashMap)call.argument("original");
+        Contact ct1 = Contact.fromMap((HashMap)call.argument("update"));
+        Contact ct2 = Contact.fromMap((HashMap)call.argument("original"));
         if(this.updateContact(ct1, ct2)) {
           result.success(null);
         } else {
