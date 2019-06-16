@@ -355,11 +355,12 @@ public class ContactsServicePlugin implements MethodCallHandler {
     ops.add(operation.build());
 
     //Phones
-    for(Item phone : contact.phones){
+    for(int i=1; i<contact.phones.length; i++){
       operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-              .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + Phone.TYPE + "=?",
-                      new String[]{String.valueOf(contact.identifier), Phone.CONTENT_ITEM_TYPE, String.valueOf(Item.stringToPhoneType(phone.label))})
-              .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phone.value);
+              .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + ContactsContract.CommonDataKinds.Phone.NUMBER + "=?",
+                      new String[]{String.valueOf(contact.identifier), Phone.CONTENT_ITEM_TYPE, oldContact.phones[i].value)})
+              .withValue(CommonDataKinds.Phone.TYPE, Item.stringToPhoneType(contact.phones[i].label))
+              .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, contact.phones[i].value);
       ops.add(operation.build());
     }
 
