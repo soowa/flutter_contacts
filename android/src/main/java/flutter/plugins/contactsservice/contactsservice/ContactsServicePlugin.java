@@ -358,9 +358,9 @@ public class ContactsServicePlugin implements MethodCallHandler {
     for(int i=1; i<contact.phones.length; i++){
       operation = ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
               .withSelection(ContactsContract.Data.CONTACT_ID + "=?" + " AND " + ContactsContract.Data.MIMETYPE + "=?" + " AND " + ContactsContract.CommonDataKinds.Phone.NUMBER + "=?",
-                      new String[]{String.valueOf(contact.identifier), Phone.CONTENT_ITEM_TYPE, oldContact.phones[i].value)})
+                      new String[]{String.valueOf(contact.identifier), Phone.CONTENT_ITEM_TYPE, String.valueOf(oldContact.phones[i].value)})
               .withValue(CommonDataKinds.Phone.TYPE, Item.stringToPhoneType(contact.phones[i].label))
-              .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, contact.phones[i].value);
+              .withValue(CommonDataKinds.Phone.NUMBER, contact.phones[i].value);
       ops.add(operation.build());
     }
 
