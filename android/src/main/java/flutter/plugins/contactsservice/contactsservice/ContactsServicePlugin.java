@@ -67,8 +67,9 @@ public class ContactsServicePlugin implements MethodCallHandler {
         }
         break;
       case "updateContact":
-        Contact ct1 = Contact.fromMap((HashMap)call.arguments);
-        if(this.updateContact(ct1)) {
+        Contact ct1 = Contact.fromMap((HashMap)call.argument("update");
+        Contact ct2 = Contact.fromMap((HashMap)call.argument("original");
+        if(this.updateContact(ct1, ct2)) {
           result.success(null);
         } else {
           result.error(null, "Failed to update the contact, make sure it has a valid identifier", null);
@@ -333,7 +334,7 @@ public class ContactsServicePlugin implements MethodCallHandler {
     }
   }
 
-  private boolean updateContact(Contact contact) {
+  private boolean updateContact(Contact contact, Contact oldContact) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<>();
     ContentProviderOperation.Builder op;
 

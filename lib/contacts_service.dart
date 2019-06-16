@@ -30,8 +30,8 @@ class ContactsService {
       _channel.invokeMethod('deleteContact', Contact._toMap(contact));
 
   /// Updates the [contact] if it has a valid identifier
-  static Future updateContact(Contact contact) =>
-      _channel.invokeMethod('updateContact', Contact._toMap(contact));
+  static Future updateContact(Contact update, Contact original) =>
+      _channel.invokeMethod('updateContact', {"update":Contact._toMap(update), "original":Contact._toMap(original)});
 }
 
 class Contact {
