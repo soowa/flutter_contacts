@@ -31,7 +31,9 @@ class ContactsService {
 
   /// Updates the [contact] if it has a valid identifier
   static Future updateContact(Contact update, Contact original) =>
-      _channel.invokeMethod('updateContact', {"update":Contact._toMap(update), "original":Contact._toMap(original)});
+    (Platform.isAndroid)
+      ? _channel.invokeMethod('updateContact', {"update":Contact._toMap(update), "original":Contact._toMap(original)})
+      : _channel.invokeMethod('updateContact', Contact._toMap(update));
 }
 
 class Contact {
